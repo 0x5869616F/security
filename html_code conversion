@@ -1,0 +1,60 @@
+# 用于解决一些无法复制的代码块复制到文本中，会自带html标签的情况。
+
+import html2text
+import re
+import PySimpleGUI as sg
+
+
+def remove_all_numbered_prefixes(lines):
+    # 使用正则表达式模式匹配以数字和点号开头的部分并替换为空
+    pattern = r'^\d+\.\s?'
+    result = [re.sub(r'^(\d+)\.', '', line) for line in lines]
+    return result
+
+
+def process_string(lines):
+    processed_lines = [line.lstrip() for line in lines]  # 删除行开头的空格
+    return processed_lines
+
+
+def convert_html_to_text(html_code):
+    text_converter = html2text.HTML2Text()
+    text_converter.body_width = 0
+    formatted_code = text_converter.handle(html_code)
+    formatted_lines = formatted_code.split("\n")
+    formatted_lines = process_string(formatted_lines)
+    formatted_lines = remove_all_numbered_prefixes(formatted_lines)
+    formatted_lines = process_string(formatted_lines)
+    formatted_lines = remove_all_numbered_prefixes(formatted_lines)
+    return "\n".join(formatted_lines)
+
+
+def main():
+    layout = [
+        [sg.Text('请输入需要转换的HTML代码：')],
+        [sg.Multiline(size=(80, 10), key='-INPUT-', enable_events=True)],
+        [sg.Button('转换'), sg.Button('退出')],
+        [sg.Text('转换结果')],
+        [sg.Output(size=(80, 20), key='-OUTPUT-')],
+    ]
+
+    window = sg.Window('HTML转换器', layout)
+
+    while True:
+        event, values = window.read()
+
+        if event == sg.WINDOW_CLOSED or event == '退出':
+            break
+
+        if event == '转换':
+            html_code = values['-INPUT-']
+            window['-OUTPUT-'].update('')  # 清空输出框
+            formatted_text = convert_html_to_text(html_code)
+            print(formatted_text)
+            window['-INPUT-'].update('')  # 清空输入框
+
+    window.close()
+
+
+if __name__ == '__main__':
+    main()
