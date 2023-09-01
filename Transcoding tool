@@ -1,0 +1,76 @@
+# 这是一个将字符串转16进制(如将abc转码为：\x61\x62\x63的形式),好像目前能找到的工具转码都是开头标识0x之后跟上数字的形式，因此自己编写了一个简单的转码工具。
+# 其中包括base64编码，16进制转码，以及url转码
+# 直接用python运行，会弹出一个窗口，在里面进行转换就行，如果嫌打开python麻烦，可以将其打包为exe文件，之后直接点击就行
+
+
+import base64
+import urllib.parse
+
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButton, QComboBox, QPlainTextEdit
+
+
+class Encoder(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        # 设置窗口的标题为 "编码转换工具"
+        self.setWindowTitle("编码转换工具")
+        # 设置窗口在屏幕上的位置和大小，前两个参数是窗口左上角的坐标，后两个参数是窗口的宽度和高度
+        self.setGeometry(300, 300, 400, 250)
+
+        # 创建一个标签对象 self.label，并将其文本设置为 "请输入字符串:"。然后，使用 move() 方法将标签放置在窗口中的相应位置
+        self.label = QLabel("请输入字符串:", self)
+        self.label.move(20, 20)
+
+        self.input_text = QLineEdit(self)
+        self.input_text.setGeometry(150, 20, 200, 30)
+
+        self.convert_button = QPushButton("转换", self)
+        self.convert_button.setGeometry(150, 60, 80, 30)
+        self.convert_button.clicked.connect(self.convert_text)
+
+        self.mode_label = QLabel("请选择转换方式:", self)
+        self.mode_label.move(20, 100)
+
+        self.mode_combo = QComboBox(self)
+        self.mode_combo.setGeometry(150, 100, 200, 30)
+        self.mode_combo.addItem("URL 编码")
+        self.mode_combo.addItem("十六进制编码")
+        self.mode_combo.addItem("Base64 编码")
+
+        self.output_label = QLabel("转换结果:", self)
+        self.output_label.move(20, 140)
+
+        self.output_text = QPlainTextEdit(self)  # 导入了 QPlainTextEdit
+        self.output_text.setGeometry(20, 160, 380, 60)
+
+        self.show()
+
+    def convert_text(self):
+        string = self.input_text.text()
+        mode = self.mode_combo.currentText()
+
+        if mode == "URL 编码":
+            encoded_string = ''.join([f'%{ord(char):02x}' for char in string])
+            self.output_text.setPlainText(encoded_string)
+        elif mode == "十六进制编码":
+            hex_str = ""
+            for char in string:
+                hex_val = hex(ord(char))[2:]
+                if len(hex_val) == 1:
+                    hex_val = "0" + hex_val
+                hex_str += "\\x" + hex_val
+            self.output_text.setPlainText(hex_str)
+        elif mode == "Base64 编码":
+            encoded_string = base64.b64encode(string.encode()).decode()
+            self.output_text.setPlainText(encoded_string)
+
+
+if __name__ == "__main__":
+    import sys
+
+    app = QApplication(sys.argv)
+    encoder = Encoder()
+    sys.exit(app.exec_())
